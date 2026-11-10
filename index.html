@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#faf7ff">
+  <meta name="description" content="A bright, playful way to explore and hear the alphabet.">
+  <title>AlphaRead — Hear the alphabet</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #262236;
+      --muted: #827d91;
+      --paper: #faf8fc;
+      --pink: #f05091;
+      --purple: #8d5cf6;
+      --orange: #ff9a54;
+      --line: #eeeaf3;
+      font-family: Inter, ui-rounded, "SF Pro Rounded", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--paper); }
+    button { font: inherit; }
+    .app { max-width: 520px; min-height: 100vh; margin: 0 auto; padding-bottom: calc(86px + env(safe-area-inset-bottom)); background: #fff; box-shadow: 0 0 40px #39255a0c; }
+    .topbar { height: 66px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f3f0f5; }
+    .brand { display: flex; align-items: center; gap: 9px; font-size: 20px; font-weight: 850; letter-spacing: -1px; }
+    .brand-mark { width: 31px; height: 31px; display: grid; place-items: center; color: #fff; border-radius: 11px; background: linear-gradient(140deg, #ffbd62, #f04892 53%, #8355f5); font-size: 18px; }
+    .sound-toggle { border: 0; background: #f6f2fb; color: #6f52bd; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 19px; }
+    .sound-toggle:focus-visible, .letter-card:focus-visible, .filter:focus-visible, .nav-item:focus-visible { outline: 3px solid #ad8bff; outline-offset: 3px; }
+    main { padding: 22px 18px 26px; }
+    .intro { padding: 19px 20px 20px; border-radius: 23px; color: #fff; background: linear-gradient(125deg, #ff9d67 0%, #ef5795 47%, #865af4 100%); position: relative; overflow: hidden; }
+    .intro:after { content: "Aa"; position: absolute; right: 12px; bottom: -27px; color: #ffffff20; font-size: 112px; font-weight: 900; letter-spacing: -12px; transform: rotate(-9deg); }
+    .eyebrow { margin: 0 0 8px; font-size: 11px; font-weight: 800; letter-spacing: 1.7px; text-transform: uppercase; opacity: .9; }
+    h1 { margin: 0; font-size: clamp(26px, 8vw, 34px); line-height: 1.12; letter-spacing: -1.2px; }
+    .intro p:last-of-type { margin: 9px 0 16px; color: #fff8fc; font-size: 14px; }
+    .progress-row { display: flex; align-items: center; gap: 10px; max-width: 260px; }
+    .progress-track { height: 7px; flex: 1; border-radius: 10px; background: #ffffff50; overflow: hidden; }
+    .progress-fill { width: 0%; height: 100%; border-radius: inherit; background: #fff; transition: width .3s ease; }
+    .progress-text { font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .stories { display: flex; gap: 13px; overflow-x: auto; padding: 18px 1px 5px; scrollbar-width: none; }
+    .stories::-webkit-scrollbar { display: none; }
+    .story { flex: 0 0 61px; text-align: center; }
+    .story-ring { width: 58px; height: 58px; margin: 0 auto 6px; padding: 3px; border-radius: 50%; background: linear-gradient(135deg, #ffc76d, #f4518d 55%, #8d5cf6); }
+    .story-inner { width: 100%; height: 100%; display: grid; place-items: center; border: 2px solid white; border-radius: 50%; background: #fff6f1; color: #e56786; font-size: 22px; font-weight: 850; }
+    .story:nth-child(2n) .story-inner { background: #f3efff; color: #855dea; }
+    .story-label { color: #716b7d; font-size: 10px; font-weight: 650; }
+    .section-heading { margin: 20px 2px 12px; display: flex; align-items: end; justify-content: space-between; }
+    .section-heading h2 { margin: 0; font-size: 19px; letter-spacing: -.5px; }
+    .section-heading span { color: var(--muted); font-size: 12px; }
+    .filters { display: flex; gap: 8px; margin-bottom: 14px; }
+    .filter { border: 1px solid var(--line); padding: 8px 14px; border-radius: 20px; color: #746d81; background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .filter.active { border-color: transparent; background: #282335; color: white; }
+    .letter-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .letter-card { --accent: #f16d93; min-height: 102px; padding: 12px 9px 10px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #f0edf4; border-radius: 18px; background: linear-gradient(155deg, #fff 25%, color-mix(in srgb, var(--accent) 10%, white)); color: var(--ink); cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; -webkit-tap-highlight-color: transparent; }
+    .letter-card:active { transform: scale(.96); }
+    .letter-card:hover { transform: translateY(-2px); box-shadow: 0 7px 18px #3b245414; }
+    .letter-card .big-letter { color: var(--accent); font-size: 37px; font-weight: 850; line-height: 1; letter-spacing: -2px; }
+    .letter-card .word { margin-top: 7px; color: #797385; font-size: 10px; font-weight: 650; }
+    .letter-card .heard { position: absolute; top: 7px; right: 8px; color: #9c92aa; font-size: 11px; }
+    .letter-card.learned { border-color: color-mix(in srgb, var(--accent) 35%, white); }
+    .letter-card.learned .heard { color: #43b58b; }
+    .empty-note { grid-column: 1 / -1; padding: 24px; text-align: center; color: var(--muted); }
+    .now-playing { margin-top: 16px; padding: 13px 15px; display: flex; align-items: center; gap: 12px; border-radius: 17px; background: #f8f5fc; }
+    .play-icon { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; border-radius: 13px; background: linear-gradient(140deg, #f46e9e, #8b5df0); color: #fff; }
+    .now-copy { min-width: 0; }
+    .now-copy strong { display: block; font-size: 13px; }
+    .now-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .bottom-nav { position: fixed; z-index: 4; left: 50%; bottom: 0; width: min(520px, 100%); transform: translateX(-50%); padding: 9px 16px calc(9px + env(safe-area-inset-bottom)); display: flex; justify-content: space-around; background: #ffffffed; border-top: 1px solid #eeeaf3; backdrop-filter: blur(14px); }
+    .nav-item { min-width: 62px; display: grid; justify-items: center; gap: 3px; border: 0; background: transparent; color: #a29baa; cursor: pointer; font-size: 10px; }
+    .nav-item .nav-icon { font-size: 20px; line-height: 1.1; }
+    .nav-item.active { color: #e65391; font-weight: 750; }
+    .toast { position: fixed; z-index: 5; left: 50%; bottom: calc(85px + env(safe-area-inset-bottom)); transform: translate(-50%, 12px); opacity: 0; padding: 9px 14px; border-radius: 20px; background: #282335; color: white; font-size: 12px; pointer-events: none; transition: .2s ease; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    @media (min-width: 520px) { body { padding: 20px 0; } .app { min-height: calc(100vh - 40px); border-radius: 26px; overflow: hidden; } .bottom-nav { bottom: 20px; border-radius: 0 0 26px 26px; } }
+    @media (max-width: 360px) { main { padding-left: 14px; padding-right: 14px; } .letter-grid { gap: 7px; } .letter-card { min-height: 92px; } }
+    @media (prefers-reduced-motion: reduce) { *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">A</span><span>alpha<span style="color:#e65391">read</span></span></div>
+      <button class="sound-toggle" id="soundToggle" type="button" aria-label="Turn sound off" title="Toggle sound">🔊</button>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="welcome-title">
+        <p class="eyebrow">A little learning every day</p>
+        <h1 id="welcome-title">Meet your<br>ABC besties ✨</h1>
+        <p>Tap any letter to hear it say hello!</p>
+        <div class="progress-row" aria-label="Learning progress">
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          <span class="progress-text" id="progressText">0 / 26 heard</span>
+        </div>
+      </section>
+      <section class="stories" aria-label="Alphabet stories" id="stories"></section>
+      <div class="section-heading"><h2>Explore letters</h2><span>Tap a card to listen 🔈</span></div>
+      <div class="filters" role="group" aria-label="Filter letters">
+        <button class="filter active" type="button" data-filter="all" aria-pressed="true">All letters</button>
+        <button class="filter" type="button" data-filter="vowels" aria-pressed="false">Vowels</button>
+        <button class="filter" type="button" data-filter="heard" aria-pressed="false">Heard</button>
+      </div>
+      <section class="letter-grid" id="letterGrid" aria-label="Alphabet letters"></section>
+      <section class="now-playing" aria-live="polite" aria-atomic="true">
+        <div class="play-icon" aria-hidden="true">▶</div>
+        <div class="now-copy"><strong id="nowTitle">Ready when you are!</strong><span id="nowSubtitle">Pick a letter and let’s learn together.</span></div>
+      </section>
+    </main>
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="nav-item active" type="button"><span class="nav-icon">⌂</span><span>Learn</span></button>
+      <button class="nav-item" type="button" id="shuffleButton"><span class="nav-icon">✧</span><span>Surprise</span></button>
+      <button class="nav-item" type="button" id="resetButton"><span class="nav-icon">♡</span><span>Practice</span></button>
+      <button class="nav-item" type="button" id="aboutButton"><span class="nav-icon">☺</span><span>About</span></button>
+    </nav>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+  <script>
+    const alphabet = [
+      ['A','Apple'],['B','Ball'],['C','Cat'],['D','Dog'],['E','Elephant'],['F','Fish'],['G','Giraffe'],['H','House'],['I','Ice cream'],['J','Juice'],['K','Kite'],['L','Lion'],['M','Moon'],['N','Nest'],['O','Owl'],['P','Pizza'],['Q','Queen'],['R','Rainbow'],['S','Sun'],['T','Tiger'],['U','Umbrella'],['V','Violin'],['W','Whale'],['X','Xylophone'],['Y','Yo-yo'],['Z','Zebra']
+    ];
+    const vowels = new Set(['A','E','I','O','U']);
+    const colors = ['#f16d93','#f6a14e','#8d69ec','#49bba4','#ed709d','#638be9','#e8a34e','#9b6ee2'];
+    const heard = new Set();
+    const grid = document.getElementById('letterGrid');
+    let currentFilter = 'all';
+    let soundEnabled = true;
+    let toastTimer;
+
+    function renderStories() {
+      document.getElementById('stories').innerHTML = alphabet.slice(0, 8).map(([letter, word]) => `
+        <div class="story"><div class="story-ring"><div class="story-inner">${letter}</div></div><div class="story-label">${word}</div></div>`).join('');
+    }
+    function renderGrid() {
+      const letters = alphabet.filter(([letter]) => currentFilter === 'vowels' ? vowels.has(letter) : currentFilter === 'heard' ? heard.has(letter) : true);
+      if (!letters.length) {
+        grid.innerHTML = '<div class="empty-note">No letters heard yet — tap a letter to get started! 💖</div>';
+        return;
+      }
+      grid.innerHTML = letters.map(([letter, word], index) => `
+        <button class="letter-card ${heard.has(letter) ? 'learned' : ''}" type="button" data-letter="${letter}" style="--accent:${colors[index % colors.length]}" aria-label="Hear ${letter}, ${letter} is for ${word}${heard.has(letter) ? ', already heard' : ''}">
+          <span class="heard" aria-hidden="true">${heard.has(letter) ? '✓' : '♪'}</span><span class="big-letter">${letter}<sup style="font-size:.52em;vertical-align:top;letter-spacing:0">${letter.toLowerCase()}</sup></span><span class="word">${word}</span>
+        </button>`).join('');
+      grid.querySelectorAll('.letter-card').forEach(button => button.addEventListener('click', () => sayLetter(button.dataset.letter)));
+    }
+    function updateProgress() {
+      document.getElementById('progressText').textContent = `${heard.size} / 26 heard`;
+      document.getElementById('progressFill').style.width = `${heard.size / 26 * 100}%`;
+    }
+    function sayLetter(letter) {
+      const entry = alphabet.find(([item]) => item === letter);
+      if (!entry) return;
+      const [, word] = entry;
+      document.getElementById('nowTitle').textContent = `${letter} is for ${word}!`;
+      document.getElementById('nowSubtitle').textContent = soundEnabled ? `Listen: “${letter}... ${word}!”` : 'Sound is off — turn it on to listen.';
+      heard.add(letter);
+      updateProgress();
+      renderGrid();
+      if (soundEnabled && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(`${letter}. ${letter} is for ${word}.`);
+        utterance.rate = 0.82;
+        utterance.pitch = 1.12;
+        window.speechSynthesis.speak(utterance);
+      } else if (soundEnabled) {
+        showToast('Audio isn’t supported by this browser.');
+      }
+    }
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+    document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
+      currentFilter = button.dataset.filter;
+      document.querySelectorAll('.filter').forEach(filter => {
+        const active = filter === button;
+        filter.classList.toggle('active', active);
+        filter.setAttribute('aria-pressed', String(active));
+      });
+      renderGrid();
+    }));
+    document.getElementById('soundToggle').addEventListener('click', event => {
+      soundEnabled = !soundEnabled;
+      event.currentTarget.textContent = soundEnabled ? '🔊' : '🔇';
+      event.currentTarget.setAttribute('aria-label', soundEnabled ? 'Turn sound off' : 'Turn sound on');
+      if (!soundEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    });
+    document.getElementById('shuffleButton').addEventListener('click', () => {
+      const next = alphabet[Math.floor(Math.random() * alphabet.length)][0];
+      sayLetter(next);
+      document.querySelector('.nav-item.active').classList.remove('active');
+      document.querySelectorAll('.nav-item')[1].classList.add('active');
+    });
+    document.getElementById('resetButton').addEventListener('click', () => {
+      heard.clear(); updateProgress(); renderGrid();
+      document.getElementById('nowTitle').textContent = 'Fresh start!';
+      document.getElementById('nowSubtitle').textContent = 'Your heard-letter progress has been reset.';
+      showToast('Practice progress reset');
+    });
+    document.getElementById('aboutButton').addEventListener('click', () => showToast('AlphaRead — tap a letter to hear it!'));
+    renderStories();
+    renderGrid();
+  </script>
+</body>
+</html>
