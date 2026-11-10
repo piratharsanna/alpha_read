@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "AlphaRead",
+    "slug": "alpharead",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FFF9FC"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alpharead.app"
+    },
+    "android": {
+      "package": "com.alpharead.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF9FC"
+      }
+    }
+  }
+}
